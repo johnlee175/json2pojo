@@ -1,0 +1,60 @@
+<idea-plugin>
+  <id>com.johnsoft.plugin.json2pojo.id</id>
+  <name>json2pojo</name>
+  <version>1.0</version>
+  <vendor email="johnlee175@163.com" url="https://github.com/johnlee175">JohnSoft</vendor>
+
+  <description><![CDATA[
+      Generate POJO from json text or file [support Gson and org.json]
+    ]]></description>
+
+  <change-notes><![CDATA[
+      First version
+    ]]>
+  </change-notes>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html
+      for description -->
+  <idea-version since-build="145.0"/>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+      on how to target different products -->
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.modules.lang</depends>
+  <depends>org.jetbrains.android</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <inspectionToolProvider implementation="com.johnsoft.plugin.json2pojo.InitMethodCheckProvider"/>
+
+    <intentionAction>
+      <className>com.johnsoft.plugin.json2pojo.CreateFactoryIntentionAction</className>
+      <category>Java/Refactorings</category>
+      <descriptionDirectoryName>CreateFactoryIntentionAction</descriptionDirectoryName>
+    </intentionAction>
+  </extensions>
+
+  <actions>
+    <group id="ToolsMenu.CustomGroup">
+      <separator/>
+      <action id="com.johnsoft.plugin.json2pojo.ParseJsonFileAction"
+              class="com.johnsoft.plugin.json2pojo.ParseJsonFileAction"
+              text="pojo from json file"
+              description="pojo from json file"/>
+      <separator/>
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
+    </group>
+    <action id="com.johnsoft.plugin.json2pojo.GenJSONMethodAction"
+            class="com.johnsoft.plugin.json2pojo.GenJSONMethodAction"
+            text="generate org.json implementation"
+            description="generate org.json implementation">
+      <add-to-group group-id="JavaGenerateGroup2" anchor="last"/>
+    </action>
+    <action id="com.johnsoft.plugin.json2pojo.NewTplLayoutAction"
+            class="com.johnsoft.plugin.json2pojo.NewTplLayoutAction"
+            text="New TemplateLayout"
+            description="New TemplateLayout">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
+  </actions>
+
+</idea-plugin>

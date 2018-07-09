@@ -1,0 +1,16 @@
+public class <spot>Person</spot> {
+    private int age;
+    private String name;
+
+    public <spot>Person</spot>() {
+        initialize();
+    }
+
+    public <spot>Person</spot>(int age, String name) {
+        this.age = age;
+        this.name = name;
+        initialize();
+    }
+
+    protect void initialize() { }
+}
