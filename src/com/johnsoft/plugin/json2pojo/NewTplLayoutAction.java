@@ -21,6 +21,15 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiNewExpression;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.ClassInheritorsSearch;
+import com.intellij.psi.search.searches.MethodReferencesSearch;
 
 /**
  * @author John Kenrinus Lee
@@ -32,5 +41,29 @@ public class NewTplLayoutAction extends AnAction {
         String platform = ActionUtils.isAndroidStudio() ? "Android Studio" : "Intellij IDEA";
         Notifications.Bus.notify(new Notification("New Template", "Notification",
                 "This is a test of notify from " + platform, NotificationType.INFORMATION));
+
+        String className = Messages.showInputDialog("Input class", "Entry", null);
+        if (className == null) {
+            return;
+        }
+        PsiClass psiClass = JavaPsiFacade.getInstance(anActionEvent.getProject())
+                .findClass(className, GlobalSearchScope.allScope(anActionEvent.getProject()));
+        if (psiClass != null) {
+            for (PsiClass aClass : ClassInheritorsSearch.search(psiClass).findAll()) {
+//                ReferencesSearch.search();
+//                AnnotatedMembersSearch.search();
+//                ClassesWithAnnotatedMembersSearch.search();
+//                MethodImplementationsSearch.getOverridingMethods();
+//                OverridingMethodsSearch.search();
+//                IndexPatternSearch.search();
+                for (PsiMethod psiMethod : aClass.getAllMethods()) {
+                    for (PsiReference ref : MethodReferencesSearch.search(psiMethod)) {
+                        if (ref.getElement().getParent() instanceof PsiNewExpression) {
+                            System.out.println(ref);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

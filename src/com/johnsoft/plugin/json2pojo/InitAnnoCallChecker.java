@@ -16,6 +16,8 @@
  */
 package com.johnsoft.plugin.json2pojo;
 
+import java.util.ArrayList;
+
 import javax.swing.JComponent;
 
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +42,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiNewExpression;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiType;
@@ -49,15 +52,13 @@ import com.intellij.testFramework.PsiTestUtil;
 
 /**
  * @author John Kenrinus Lee
- * @version 2018-07-05
+ * @version 2018-07-11
  */
-public class InitMethodInspection extends BaseJavaLocalInspectionTool {
+public class InitAnnoCallChecker extends BaseJavaLocalInspectionTool {
     @NotNull
     @Override
     public String getShortName() {
-        // for SuppressWarnings
-        // for resources/inspectionDescriptions/xxx.html
-        return "InitMethodCheck";
+        return "InitAnnoCallCheck";
     }
 
     @NotNull
@@ -69,14 +70,12 @@ public class InitMethodInspection extends BaseJavaLocalInspectionTool {
     @NotNull
     @Override
     public String getDisplayName() {
-        // the text will showing in Inspections Preferences
-        return "check Resource#initialize or Openable#open call";
+        return "check the method annotated by @InitMethod of the class annotated by @ManualInit called";
     }
 
     @Nullable
     @Override
     public JComponent createOptionsPanel() {
-        // the option panel will showing in Inspections Preferences
         return null;
     }
 
@@ -99,12 +98,12 @@ public class InitMethodInspection extends BaseJavaLocalInspectionTool {
 
     private static final class MyJavaElementVisitor extends JavaElementVisitor {
         private final ProblemsHolder holder;
-        private final ResInitPsiHandler handler;
+        private final AnnoInitPsiHandler handler;
         private final LocalQuickFix quickFix;
 
         MyJavaElementVisitor(@NotNull final ProblemsHolder holder) {
             this.holder = holder;
-            this.handler = new ResInitPsiHandler();
+            this.handler = new AnnoInitPsiHandler();
             this.quickFix = new MyQuickFix(handler);
         }
 
@@ -113,14 +112,14 @@ public class InitMethodInspection extends BaseJavaLocalInspectionTool {
             super.visitNewExpression(expression);
             if (handler.shouldQuickFix(expression)) {
                 holder.registerProblem(expression, handler.getProblemDescription(),
-                        ProblemHighlightType.GENERIC_ERROR, quickFix);
+                        ProblemHighlightType.GENERIC_ERROR_OR_WARNING, quickFix);
             }
         }
 
         private static final class MyQuickFix implements LocalQuickFix {
-            private final ResInitPsiHandler handler;
+            private final AnnoInitPsiHandler handler;
 
-            MyQuickFix(ResInitPsiHandler handler) {
+            MyQuickFix(AnnoInitPsiHandler handler) {
                 this.handler = handler;
             }
 
@@ -143,29 +142,15 @@ public class InitMethodInspection extends BaseJavaLocalInspectionTool {
         }
     }
 
-    private static final class ResInitPsiHandler {
-        private static final String[] CHECK_CLASSES = new String[] {
-                ".Resource", ".Openable"
-        };
-        private static final String[] MAP_METHODS = new String[] {
-                "initialize", "open"
-        };
-
-        private PsiClass targetInterface = null;
-        private PsiMethod[] targetMethods = null;
+    private static final class AnnoInitPsiHandler {
+        private ArrayList<PsiMethod> targetMethods = null;
 
         public String getFixName() {
-            return "Call initialize/open method";
+            return "Call @InitMethod method";
         }
 
         public String getProblemDescription() {
-            final String interfaceName;
-            final String methodName;
-            synchronized (this) {
-                interfaceName = targetInterface.getQualifiedName();
-                methodName = targetMethods[0].getName();
-            }
-            return "the class implements " + interfaceName + ", but the method " + methodName
+            return "the class annotated with @Init, but the @InitMethod method"
                     + " is not called first or called with no matches";
         }
 
@@ -184,45 +169,38 @@ public class InitMethodInspection extends BaseJavaLocalInspectionTool {
             if (psiClass == null) {
                 return false;
             }
-            final PsiClass[] interfaces;
-            if (psiClass.isInterface()) {
-                interfaces = new PsiClass[] { psiClass };
-            } else {
-                interfaces = psiClass.getInterfaces();
-                if (interfaces == null || interfaces.length == 0) {
-                    return false;
+            final PsiModifierList modifierList = psiClass.getModifierList();
+            if (modifierList == null) {
+                return false;
+            }
+            if (modifierList.findAnnotation(InitMethodCheckProvider.MANUAL_INIT) == null) {
+                return false;
+            }
+
+            final PsiMethod[] allMethods = psiClass.getAllMethods();
+            if (allMethods.length == 0) {
+                return false;
+            }
+
+            final ArrayList<PsiMethod> methods = new ArrayList<>();
+            for (PsiMethod method : allMethods) {
+                final PsiModifierList modifiers = method.getModifierList();
+                if (modifiers.findAnnotation(InitMethodCheckProvider.INIT_METHOD) != null) {
+                    methods.add(method);
                 }
             }
 
-            PsiClass lInterface = null;
-            PsiMethod[] lMethods = null;
-            for (PsiClass anInterface : interfaces) {
-                final String qualifiedName = anInterface.getQualifiedName();
-                if (qualifiedName != null) {
-                    final int length = CHECK_CLASSES.length;
-                    for (int i = 0; i < length; ++i) {
-                        if (qualifiedName.endsWith(CHECK_CLASSES[i])) {
-                            final PsiMethod[] methods = anInterface.findMethodsByName(MAP_METHODS[i], true);
-                            if (methods.length > 0) {
-                                lInterface = anInterface;
-                                lMethods = methods;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            if (lInterface == null || lMethods == null) {
+            if (methods.isEmpty()) {
                 return false;
             }
 
             final PsiMethodCallExpression methodCall =
                     PsiTreeUtil.getParentOfType(expression, PsiMethodCallExpression.class);
             if (methodCall != null) {
-                if (lMethods[0].getName().equals(methodCall.getMethodExpression().getReferenceName())) {
-                    final PsiType[] exprTypes = methodCall.getArgumentList().getExpressionTypes();
-                    for (PsiMethod lMethod : lMethods) {
-                        final PsiParameter[] params = lMethod.getParameterList().getParameters();
+                for (PsiMethod method : methods) {
+                    if (method.getName().equals(methodCall.getMethodExpression().getReferenceName())) {
+                        final PsiType[] exprTypes = methodCall.getArgumentList().getExpressionTypes();
+                        final PsiParameter[] params = method.getParameterList().getParameters();
                         final int len;
                         if ((len = params.length) == exprTypes.length) {
                             boolean matches = true;
@@ -242,35 +220,35 @@ public class InitMethodInspection extends BaseJavaLocalInspectionTool {
             }
 
             synchronized (this) {
-                targetInterface = lInterface;
-                targetMethods = lMethods;
+                targetMethods = methods;
             }
             return true;
         }
 
         public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor,
-                                    @NotNull final PsiNewExpression expression) {
-            final PsiClass lInterface;
-            final PsiMethod[] lMethods;
+                             @NotNull final PsiNewExpression expression) {
+            final ArrayList<PsiMethod> lMethods;
             synchronized (this) {
-                lInterface = targetInterface;
                 lMethods = targetMethods;
             }
-            if (lInterface == null || lMethods == null) {
+            if (lMethods == null || lMethods.isEmpty()) {
                 return;
             }
-            final String methodName = lMethods[0].getName();
+
             final PsiFile psiFile = expression.getContainingFile();
 
             final PsiMethodCallExpression methodCall =
                     PsiTreeUtil.getParentOfType(expression, PsiMethodCallExpression.class);
             if (methodCall != null) {
-                if (methodName.equals(methodCall.getMethodExpression().getReferenceName())) {
-                    ActionUtils.caretMoveAndShowParams(project, psiFile, methodCall.getArgumentList());
-                    return;
+                for (PsiMethod lMethod : lMethods) {
+                    if (lMethod.getName().equals(methodCall.getMethodExpression().getReferenceName())) {
+                        ActionUtils.caretMoveAndShowParams(project, psiFile, methodCall.getArgumentList());
+                        return;
+                    }
                 }
             }
 
+            final String methodName = lMethods.get(0).getName();
             final PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
             final PsiMethodCallExpression callExpr =
                     (PsiMethodCallExpression) factory.createExpressionFromText("a." + methodName + "()", null);
@@ -282,7 +260,6 @@ public class InitMethodInspection extends BaseJavaLocalInspectionTool {
             ActionUtils.caretMoveAndShowParams(project, psiFile, newElement.getLastChild());
 
             synchronized (this) {
-                targetInterface = null;
                 targetMethods = null;
             }
         }

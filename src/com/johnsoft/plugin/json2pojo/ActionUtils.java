@@ -18,13 +18,18 @@ package com.johnsoft.plugin.json2pojo;
 
 import java.util.Arrays;
 
+import com.intellij.codeInsight.hint.ShowParameterInfoHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.impl.LoadTextUtil;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiParameterList;
@@ -176,5 +181,15 @@ public class ActionUtils {
             }
         }
         return true;
+    }
+
+    public static void caretMoveAndShowParams(Project project, PsiFile psiFile, PsiElement element) {
+        final Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
+        if (editor != null) {
+            final int offset = element.getTextOffset() + 1;
+            ShowParameterInfoHandler.invoke(project, editor, psiFile,
+                    offset, element, false);
+            editor.getCaretModel().moveToOffset(offset);
+        }
     }
 }

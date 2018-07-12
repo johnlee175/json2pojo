@@ -23,8 +23,11 @@ import com.intellij.codeInspection.InspectionToolProvider;
  * @version 2018-07-05
  */
 public class InitMethodCheckProvider implements InspectionToolProvider {
+    public static final String MANUAL_INIT = "com.annotations.ManualInit";
+    public static final String INIT_METHOD = "com.annotations.InitMethod";
+
     @Override
     public Class[] getInspectionClasses() {
-        return new Class[] { InitMethodInspection.class };
+        return new Class[] { InitMethodInspection.class, InitAnnoDefineChecker.class, InitAnnoCallChecker.class };
     }
 }
