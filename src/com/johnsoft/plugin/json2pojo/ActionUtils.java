@@ -31,8 +31,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiMethodCallExpression;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiParameterList;
+import com.intellij.psi.PsiType;
 import com.intellij.util.PlatformUtils;
 
 /**
@@ -161,7 +163,7 @@ public class ActionUtils {
         }
         final PsiParameterList leftParams = left.getParameterList();
         final PsiParameterList rightParams = right.getParameterList();
-        int paramCount;
+        final int paramCount;
         if ((paramCount = leftParams.getParametersCount()) != rightParams.getParametersCount()) {
             return false;
         }
@@ -179,6 +181,33 @@ public class ActionUtils {
                     ||(!leftParameters[i].isVarArgs() && rightParameters[i].isVarArgs())) {
                 return false;
             }
+        }
+        return true;
+    }
+
+    public static boolean isMethodNameAndParamsSame(PsiMethod left, PsiMethodCallExpression right, boolean checkName) {
+        if (left == null || right == null) {
+            return false;
+        }
+        if (checkName && (!left.getName().equals(right.getMethodExpression().getReferenceName()))) {
+            return false;
+        }
+
+        final PsiType[] exprTypes = right.getArgumentList().getExpressionTypes();
+        final PsiParameter[] params = left.getParameterList().getParameters();
+        final int len;
+        if ((len = params.length) != exprTypes.length) {
+            return false;
+        }
+        if (len == 0) {
+            return true;
+        }
+        for (int i = 0; i < len; ++i) {
+            if (!params[i].getType().getCanonicalText()
+                    .equals(exprTypes[i].getCanonicalText())) {
+                return false;
+            }
+            // TODO how to handle var args?
         }
         return true;
     }

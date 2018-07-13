@@ -44,8 +44,6 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiMethodCallExpression;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiNewExpression;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiType;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.PsiTestUtil;
@@ -198,23 +196,8 @@ public class InitAnnoCallChecker extends BaseJavaLocalInspectionTool {
                     PsiTreeUtil.getParentOfType(expression, PsiMethodCallExpression.class);
             if (methodCall != null) {
                 for (PsiMethod method : methods) {
-                    if (method.getName().equals(methodCall.getMethodExpression().getReferenceName())) {
-                        final PsiType[] exprTypes = methodCall.getArgumentList().getExpressionTypes();
-                        final PsiParameter[] params = method.getParameterList().getParameters();
-                        final int len;
-                        if ((len = params.length) == exprTypes.length) {
-                            boolean matches = true;
-                            for (int i = 0; i < len; ++i) {
-                                if (!params[i].getType().getCanonicalText()
-                                        .equals(exprTypes[i].getCanonicalText())) {
-                                    matches = false;
-                                    break;
-                                }
-                            }
-                            if (matches) {
-                                return false;
-                            }
-                        }
+                    if (ActionUtils.isMethodNameAndParamsSame(method, methodCall, true)) {
+                        return false;
                     }
                 }
             }

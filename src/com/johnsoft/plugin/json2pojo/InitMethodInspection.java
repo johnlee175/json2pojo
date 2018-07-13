@@ -41,8 +41,6 @@ import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiMethodCallExpression;
 import com.intellij.psi.PsiNewExpression;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiType;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.PsiTestUtil;
@@ -219,24 +217,9 @@ public class InitMethodInspection extends BaseJavaLocalInspectionTool {
             final PsiMethodCallExpression methodCall =
                     PsiTreeUtil.getParentOfType(expression, PsiMethodCallExpression.class);
             if (methodCall != null) {
-                if (lMethods[0].getName().equals(methodCall.getMethodExpression().getReferenceName())) {
-                    final PsiType[] exprTypes = methodCall.getArgumentList().getExpressionTypes();
-                    for (PsiMethod lMethod : lMethods) {
-                        final PsiParameter[] params = lMethod.getParameterList().getParameters();
-                        final int len;
-                        if ((len = params.length) == exprTypes.length) {
-                            boolean matches = true;
-                            for (int i = 0; i < len; ++i) {
-                                if (!params[i].getType().getCanonicalText()
-                                        .equals(exprTypes[i].getCanonicalText())) {
-                                    matches = false;
-                                    break;
-                                }
-                            }
-                            if (matches) {
-                                return false;
-                            }
-                        }
+                for (PsiMethod lMethod : lMethods) {
+                    if (ActionUtils.isMethodNameAndParamsSame(lMethod, methodCall, true)) {
+                        return false;
                     }
                 }
             }
