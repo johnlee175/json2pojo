@@ -44,11 +44,13 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
+import com.android.ddmlib.AllocationInfo;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.HandleViewDebug;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.ThreadInfo;
 
 /**
  * @author John Kenrinus Lee
@@ -144,6 +146,7 @@ public final class DDMDemoMain {
     public static final int PROFILE_VIEW = 9;
     public static final int INVOKE_VIEW_METHOD = 10;
     public static final int NATIVE_HEAP_TRACK = 11;
+    public static final int DUMP_THREAD = 12;
 
     public static final JFrame frame = new JFrame("AdbClient");
     public static final JPanel panel = new JPanel();
@@ -538,6 +541,40 @@ public final class DDMDemoMain {
             }
         });
 
+        mainThread.register(DUMP_THREAD, new MainThread.Callback() {
+            @Override
+            public void handleMessage(final int what, final Object data) {
+                if (client == null) {
+                    return;
+                }
+                client.setThreadUpdateEnabled(true);
+                int i = 8;
+                while (i-- >= 0) {
+                    client.requestThreadUpdate();
+                    final ThreadInfo[] threads = client.getClientData().getThreads();
+                    if (threads != null) {
+                        for (ThreadInfo thread : threads) {
+                            if ("main".equals(thread.getThreadName())) {
+                                client.requestThreadStackTrace(thread.getThreadId());
+                                System.out.println("MainThread[" + thread.getTid() + "] status " + thread.getStatus());
+                                final StackTraceElement[] stackTrace = thread.getStackTrace();
+                                if (stackTrace != null) {
+                                    for (StackTraceElement element : stackTrace) {
+                                        System.out.println(element);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    try {
+                        Thread.sleep(1000L);
+                    } catch (InterruptedException ignored) {
+                    }
+                }
+                System.out.println("Done!");
+            }
+        });
+
         final JButton connect = new JButton("connect [0]");
         connect.addActionListener(e -> mainThread.sendMessage(CONNECT_DEVICES, null));
 
@@ -571,6 +608,9 @@ public final class DDMDemoMain {
         final JButton nativeHeapTrack = new JButton("nativeHeapTrack [2]");
         nativeHeapTrack.addActionListener(e -> mainThread.sendMessage(NATIVE_HEAP_TRACK, null));
 
+        final JButton dumpThread = new JButton("dumpThread [2]");
+        dumpThread.addActionListener(e -> mainThread.sendMessage(DUMP_THREAD, null));
+
         panel.add(connect);
         panel.add(disconnect);
         panel.add(listProps);
@@ -582,6 +622,7 @@ public final class DDMDemoMain {
         panel.add(profileView);
         panel.add(invokeViewMethod);
         panel.add(nativeHeapTrack);
+        panel.add(dumpThread);
         frame.setContentPane(panel);
         frame.addWindowListener(new WindowAdapter() {
             @Override
