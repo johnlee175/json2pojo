@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.android.tools.perflib.captures.DataBuffer;
 import com.android.tools.perflib.captures.MemoryMappedFileBuffer;
@@ -67,6 +68,7 @@ public class PerflibDemoMain {
             testClassesQuery(snapshot);
             testInstancesQuery(snapshot);
             analyzeActivityLeak(snapshot);
+            // measureBitmap(snapshot, "com.baidu.searchbox.feed");
 
             System.out.println("--------------------------------------------");
             System.out.println("Memory stats: free=" + Runtime.getRuntime().freeMemory()
@@ -225,5 +227,55 @@ public class PerflibDemoMain {
         }
 
         System.out.println("leaking activities: " + leakingInstances);
+    }
+
+    public static void measureBitmap(Snapshot snapshot, String search) {
+        final Instance[] instances = Queries.allInstancesOf(snapshot, "android.graphics.Bitmap");
+        for (Instance instance : instances) {
+            Instance currentRef = instance;
+            String prefix = "";
+            boolean notify = false;
+            while (true) {
+                Instance parentRef = currentRef.getNextInstanceToGcRoot();
+                if (parentRef != null) {
+                    System.out.println(prefix + parentRef.toString());
+                    currentRef = parentRef;
+                    prefix += "  ";
+                    if (!notify
+                            && parentRef.getClassObj() != null
+                            && parentRef.getClassObj().getClassName() != null
+                            && parentRef.getClassObj().getClassName().startsWith(search)) {
+                        doMeasureBitmap(instance);
+                        notify = true;
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    private static void doMeasureBitmap(Instance instance) {
+        if (!(instance instanceof ClassInstance)) {
+            return;
+        }
+        ClassInstance classInstance = (ClassInstance) instance;
+
+        boolean recycled = true;
+        int width = 0, height = 0;
+        for (ClassInstance.FieldValue field : classInstance.getValues()) {
+            Object bitmapValue = field.getValue();
+            String bitmapFieldName = field.getField().getName();
+            if ("mWidth".equals(bitmapFieldName) && (bitmapValue instanceof Integer)) {
+                width = (Integer) bitmapValue;
+            } else if ("mHeight".equals(bitmapFieldName) && (bitmapValue instanceof Integer)) {
+                height = (Integer) bitmapValue;
+            } else if ("mRecycled".equals(bitmapFieldName) && (bitmapValue instanceof Boolean)) {
+                recycled = (Boolean) bitmapValue;
+            }
+        }
+        if (!recycled) {
+            System.out.println(">>>>>>>>>>> size: " + (width * height));
+        }
     }
 }
