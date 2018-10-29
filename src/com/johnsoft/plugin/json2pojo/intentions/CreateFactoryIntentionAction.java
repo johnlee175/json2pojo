@@ -14,7 +14,7 @@
  * See the license for the specific language governing permissions and
  * limitations under the license.
  */
-package com.johnsoft.plugin.json2pojo;
+package com.johnsoft.plugin.json2pojo.intentions;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +51,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.IncorrectOperationException;
+import com.johnsoft.plugin.json2pojo.utils.ActionUtils;
 
 /**
  * @author John Kenrinus Lee

@@ -14,7 +14,7 @@
  * See the license for the specific language governing permissions and
  * limitations under the license.
  */
-package com.johnsoft.plugin.json2pojo;
+package com.johnsoft.plugin.json2pojo.actions;
 
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -30,6 +30,7 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.search.searches.MethodReferencesSearch;
+import com.johnsoft.plugin.json2pojo.utils.ActionUtils;
 
 /**
  * @author John Kenrinus Lee

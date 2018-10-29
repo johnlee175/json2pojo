@@ -16,25 +16,23 @@
  */
 package com.johnsoft.plugin.json2pojo;
 
+import org.jetbrains.annotations.Nullable;
+
+import com.intellij.codeInsight.template.impl.DefaultLiveTemplatesProvider;
+
 /**
  * @author John Kenrinus Lee
- * @version 2018-07-02
+ * @version 2018-10-10
  */
-public abstract class ThreeParamRunnable<R, S, T> implements Runnable {
-    private final R r;
-    private final S s;
-    private final T t;
-
-    public ThreeParamRunnable(R r, S s, T t) {
-        this.r = r;
-        this.s = s;
-        this.t = t;
-    }
-
+public class EasyPrintLiveTemplateProvider implements DefaultLiveTemplatesProvider {
     @Override
-    public final void run() {
-        run(r, s, t);
+    public String[] getDefaultLiveTemplateFiles() {
+        return new String[] { "liveTemplates/EasyPrint" };
     }
 
-    public abstract void run(R r, S s, T t);
+    @Nullable
+    @Override
+    public String[] getHiddenLiveTemplateFiles() {
+        return new String[0];
+    }
 }

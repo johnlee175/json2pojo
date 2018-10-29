@@ -25,9 +25,12 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <inspectionToolProvider implementation="com.johnsoft.plugin.json2pojo.InitMethodCheckProvider"/>
+    <defaultLiveTemplatesProvider implementation="com.johnsoft.plugin.json2pojo.EasyPrintLiveTemplateProvider" />
+    <liveTemplateMacro implementation="com.johnsoft.plugin.json2pojo.macros.CodeBlockVariblesMacro"/>
+    <liveTemplateMacro implementation="com.johnsoft.plugin.json2pojo.macros.LogTagMacro"/>
 
     <intentionAction>
-      <className>com.johnsoft.plugin.json2pojo.CreateFactoryIntentionAction</className>
+      <className>com.johnsoft.plugin.json2pojo.intentions.CreateFactoryIntentionAction</className>
       <category>Java/Refactorings</category>
       <descriptionDirectoryName>CreateFactoryIntentionAction</descriptionDirectoryName>
     </intentionAction>
@@ -36,21 +39,27 @@
   <actions>
     <group id="ToolsMenu.CustomGroup">
       <separator/>
-      <action id="com.johnsoft.plugin.json2pojo.ParseJsonFileAction"
-              class="com.johnsoft.plugin.json2pojo.ParseJsonFileAction"
+      <action id="com.johnsoft.plugin.json2pojo.actions.ParseJsonFileAction"
+              class="com.johnsoft.plugin.json2pojo.actions.ParseJsonFileAction"
               text="pojo from json file"
               description="pojo from json file"/>
       <separator/>
       <add-to-group group-id="ToolsMenu" anchor="last"/>
     </group>
-    <action id="com.johnsoft.plugin.json2pojo.GenJSONMethodAction"
-            class="com.johnsoft.plugin.json2pojo.GenJSONMethodAction"
+    <action id="com.johnsoft.plugin.json2pojo.actions.GenJSONMethodAction"
+            class="com.johnsoft.plugin.json2pojo.actions.GenJSONMethodAction"
             text="generate org.json implementation"
             description="generate org.json implementation">
       <add-to-group group-id="JavaGenerateGroup2" anchor="last"/>
     </action>
-    <action id="com.johnsoft.plugin.json2pojo.NewTplLayoutAction"
-            class="com.johnsoft.plugin.json2pojo.NewTplLayoutAction"
+    <action id="com.johnsoft.plugin.json2pojo.actions.PrintAllMethodsAction"
+            class="com.johnsoft.plugin.json2pojo.actions.PrintAllMethodsAction"
+            text="Print All Methods"
+            description="Print All Methods">
+      <add-to-group group-id="GenerateGroup" anchor="last"/>
+    </action>
+    <action id="com.johnsoft.plugin.json2pojo.actions.NewTplLayoutAction"
+            class="com.johnsoft.plugin.json2pojo.actions.NewTplLayoutAction"
             text="New TemplateLayout"
             description="New TemplateLayout">
       <add-to-group group-id="NewGroup" anchor="last"/>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templateSet group="ExtraJava">
+    <template name="soutmv"
+              value="System.out.println($LOG_TAG$ + $CODE_BLOCK_VARIABLES$);"
+              description="Prints all(multiple) values in the code block to System.out"
+              toReformat="true"
+              toShortenFQNames="true">
+        <variable name="LOG_TAG" expression="logTag" defaultValue="" alwaysStopAt="true" />
+        <variable name="CODE_BLOCK_VARIABLES" expression="codeBlockVariables" defaultValue="" alwaysStopAt="false" />
+        <context>
+            <option name="JAVA_CODE" value="false" />
+            <option name="JAVA_STATEMENT" value="true" />
+        </context>
+    </template>
+
+    <template name="serrmv"
+              value="System.err.println($LOG_TAG$ + $CODE_BLOCK_VARIABLES$);"
+              description="Prints all(multiple) values in the code block to System.err"
+              toReformat="true"
+              toShortenFQNames="true">
+        <variable name="LOG_TAG" expression="logTag" defaultValue="" alwaysStopAt="true" />
+        <variable name="CODE_BLOCK_VARIABLES" expression="codeBlockVariables" defaultValue="" alwaysStopAt="false" />
+        <context>
+            <option name="JAVA_CODE" value="false" />
+            <option name="JAVA_STATEMENT" value="true" />
+        </context>
+    </template>
+
+    <template name="logimv"
+              value="android.util.Log.i($LOG_TAG$, $CODE_BLOCK_VARIABLES$);"
+              description="Prints all(multiple) values in the code block to android.util.Log.i"
+              toReformat="true"
+              toShortenFQNames="true">
+        <variable name="LOG_TAG" expression="logTag" defaultValue="" alwaysStopAt="true" />
+        <variable name="CODE_BLOCK_VARIABLES" expression="codeBlockVariables" defaultValue="" alwaysStopAt="false" />
+        <context>
+            <option name="JAVA_CODE" value="false" />
+            <option name="JAVA_STATEMENT" value="true" />
+        </context>
+    </template>
+
+    <template name="logwmv"
+              value="android.util.Log.w($LOG_TAG$, $CODE_BLOCK_VARIABLES$);"
+              description="Prints all(multiple) values in the code block to android.util.Log.w"
+              toReformat="true"
+              toShortenFQNames="true">
+        <variable name="LOG_TAG" expression="logTag" defaultValue="" alwaysStopAt="true" />
+        <variable name="CODE_BLOCK_VARIABLES" expression="codeBlockVariables" defaultValue="" alwaysStopAt="false" />
+        <context>
+            <option name="JAVA_CODE" value="false" />
+            <option name="JAVA_STATEMENT" value="true" />
+        </context>
+    </template>
+
+    <template name="soutmx"
+              value="System.out.println($LOG_TAG$ + $content$);"
+              description="System.out method name and its arguments"
+              toReformat="true"
+              toShortenFQNames="true">
+        <variable name="LOG_TAG" expression="logTag" defaultValue="" alwaysStopAt="true" />
+        <variable name="content" expression="groovyScript(&quot;def params = _2.collect {it + ' = [\&quot; + ' + it + ' + \&quot;]'}.join(', '); return '\&quot;' + _1 + '() called' + (params.empty  ? '' : ' with: ' + params) + '\&quot;'&quot;, methodName(), methodParameters())" defaultValue="" alwaysStopAt="false" />
+        <context>
+            <option name="JAVA_CODE" value="false" />
+            <option name="JAVA_STATEMENT" value="true" />
+        </context>
+    </template>
+
+    <template name="serrmx"
+              value="System.err.println($LOG_TAG$ + $content$);"
+              description="System.err method name and its arguments"
+              toReformat="true"
+              toShortenFQNames="true">
+        <variable name="LOG_TAG" expression="logTag" defaultValue="" alwaysStopAt="true" />
+        <variable name="content" expression="groovyScript(&quot;def params = _2.collect {it + ' = [\&quot; + ' + it + ' + \&quot;]'}.join(', '); return '\&quot;' + _1 + '() called' + (params.empty  ? '' : ' with: ' + params) + '\&quot;'&quot;, methodName(), methodParameters())" defaultValue="" alwaysStopAt="false" />
+        <context>
+            <option name="JAVA_CODE" value="false" />
+            <option name="JAVA_STATEMENT" value="true" />
+        </context>
+    </template>
+
+    <template name="logim"
+              value="android.util.Log.i($LOG_TAG$, $content$);"
+              description="Log.i method name and its arguments"
+              toReformat="true"
+              toShortenFQNames="true">
+        <variable name="LOG_TAG" expression="logTag" defaultValue="" alwaysStopAt="true" />
+        <variable name="content" expression="groovyScript(&quot;def params = _2.collect {it + ' = [\&quot; + ' + it + ' + \&quot;]'}.join(', '); return '\&quot;' + _1 + '() called' + (params.empty  ? '' : ' with: ' + params) + '\&quot;'&quot;, methodName(), methodParameters())" defaultValue="" alwaysStopAt="false" />
+        <context>
+            <option name="JAVA_CODE" value="false" />
+            <option name="JAVA_STATEMENT" value="true" />
+        </context>
+    </template>
+
+    <template name="logwm"
+              value="android.util.Log.w($LOG_TAG$, $content$);"
+              description="Log.w method name and its arguments"
+              toReformat="true"
+              toShortenFQNames="true">
+        <variable name="LOG_TAG" expression="logTag" defaultValue="" alwaysStopAt="true" />
+        <variable name="content" expression="groovyScript(&quot;def params = _2.collect {it + ' = [\&quot; + ' + it + ' + \&quot;]'}.join(', '); return '\&quot;' + _1 + '() called' + (params.empty  ? '' : ' with: ' + params) + '\&quot;'&quot;, methodName(), methodParameters())" defaultValue="" alwaysStopAt="false" />
+        <context>
+            <option name="JAVA_CODE" value="false" />
+            <option name="JAVA_STATEMENT" value="true" />
+        </context>
+    </template>
+</templateSet>

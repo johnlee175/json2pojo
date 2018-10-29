@@ -14,7 +14,7 @@
  * See the license for the specific language governing permissions and
  * limitations under the license.
  */
-package com.johnsoft.plugin.json2pojo;
+package com.johnsoft.plugin.json2pojo.inspections;
 
 import javax.swing.JComponent;
 
@@ -44,6 +44,7 @@ import com.intellij.psi.PsiNewExpression;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.PsiTestUtil;
+import com.johnsoft.plugin.json2pojo.utils.ActionUtils;
 
 /**
  * @author John Kenrinus Lee

@@ -14,9 +14,9 @@
  * See the license for the specific language governing permissions and
  * limitations under the license.
  */
-package com.johnsoft.plugin.json2pojo;
+package com.johnsoft.plugin.json2pojo.actions;
 
-import static com.johnsoft.plugin.json2pojo.ActionUtils.classNameToVariableName;
+import static com.johnsoft.plugin.json2pojo.utils.ActionUtils.classNameToVariableName;
 
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -44,6 +44,9 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
+import com.johnsoft.plugin.json2pojo.utils.ActionUtils;
+import com.johnsoft.plugin.json2pojo.utils.ContentPrinter;
+import com.johnsoft.plugin.json2pojo.utils.ThreeParamRunnable;
 
 /**
  * @author John Kenrinus Lee

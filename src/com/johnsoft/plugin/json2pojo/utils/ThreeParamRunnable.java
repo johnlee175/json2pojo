@@ -14,23 +14,27 @@
  * See the license for the specific language governing permissions and
  * limitations under the license.
  */
-package com.johnsoft.plugin.json2pojo;
-
-import com.intellij.codeInspection.InspectionToolProvider;
-import com.johnsoft.plugin.json2pojo.inspections.InitAnnoCallChecker;
-import com.johnsoft.plugin.json2pojo.inspections.InitAnnoDefineChecker;
-import com.johnsoft.plugin.json2pojo.inspections.InitMethodInspection;
+package com.johnsoft.plugin.json2pojo.utils;
 
 /**
  * @author John Kenrinus Lee
- * @version 2018-07-05
+ * @version 2018-07-02
  */
-public class InitMethodCheckProvider implements InspectionToolProvider {
-    public static final String MANUAL_INIT = "com.johnsoft.base.annotations.ManualInit";
-    public static final String INIT_METHOD = "com.johnsoft.base.annotations.InitMethod";
+public abstract class ThreeParamRunnable<R, S, T> implements Runnable {
+    private final R r;
+    private final S s;
+    private final T t;
+
+    public ThreeParamRunnable(R r, S s, T t) {
+        this.r = r;
+        this.s = s;
+        this.t = t;
+    }
 
     @Override
-    public Class[] getInspectionClasses() {
-        return new Class[] { InitMethodInspection.class, InitAnnoDefineChecker.class, InitAnnoCallChecker.class };
+    public final void run() {
+        run(r, s, t);
     }
+
+    public abstract void run(R r, S s, T t);
 }

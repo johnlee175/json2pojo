@@ -14,7 +14,7 @@
  * See the license for the specific language governing permissions and
  * limitations under the license.
  */
-package com.johnsoft.plugin.json2pojo;
+package com.johnsoft.plugin.json2pojo.utils;
 
 /**
  * @author John Kenrinus Lee

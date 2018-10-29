@@ -14,10 +14,10 @@
  * See the license for the specific language governing permissions and
  * limitations under the license.
  */
-package com.johnsoft.plugin.json2pojo;
+package com.johnsoft.plugin.json2pojo.actions;
 
-import static com.johnsoft.plugin.json2pojo.ActionUtils.cap;
-import static com.johnsoft.plugin.json2pojo.ActionUtils.jsonNameToFieldName;
+import static com.johnsoft.plugin.json2pojo.utils.ActionUtils.cap;
+import static com.johnsoft.plugin.json2pojo.utils.ActionUtils.jsonNameToFieldName;
 
 import java.io.File;
 import java.util.HashMap;
@@ -60,6 +60,10 @@ import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.johnsoft.plugin.json2pojo.utils.ActionUtils;
+import com.johnsoft.plugin.json2pojo.utils.ContentPrinter;
+import com.johnsoft.plugin.json2pojo.ui.NewFromJsonDialog;
+import com.johnsoft.plugin.json2pojo.utils.ThreeParamRunnable;
 
 /**
  * @author John Kenrinus Lee

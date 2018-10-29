@@ -14,7 +14,7 @@
  * See the license for the specific language governing permissions and
  * limitations under the license.
  */
-package com.johnsoft.plugin.json2pojo;
+package com.johnsoft.plugin.json2pojo.ui;
 
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -46,6 +46,7 @@ import com.intellij.psi.PsiNameHelper;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.ui.EditorTextField;
 import com.intellij.util.ui.JBUI;
+import com.johnsoft.plugin.json2pojo.utils.ActionUtils;
 
 /**
  * @author John Kenrinus Lee
