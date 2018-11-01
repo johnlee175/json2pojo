@@ -78,7 +78,13 @@ public class LogTagMacro extends Macro {
             return logTag;
         }
         psiClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
-        logTag = searchLogTagInClass(psiClass);
+        while (psiClass != null && psiClass != classes[0]) {
+            logTag = searchLogTagInClass(psiClass);
+            if (StringUtils.isNotBlank(logTag)) {
+                return logTag;
+            }
+            psiClass = PsiTreeUtil.getParentOfType(psiClass, PsiClass.class);
+        }
         return logTag;
     }
 
@@ -92,14 +98,16 @@ public class LogTagMacro extends Macro {
         logTag = psiClass.findFieldByName("LOG_TAG", true);
         if (logTag != null
                 && "java.lang.String".equals(logTag.getType().getCanonicalText())
-                && logTag.hasModifierProperty("final") && logTag.hasModifierProperty("static")) {
+                && logTag.hasModifierProperty("final") && logTag.hasModifierProperty("static")
+                && (!logTag.hasModifierProperty("private") || psiClass.equals(logTag.getContainingClass()))) {
             return "LOG_TAG";
         }
 
         logTag = psiClass.findFieldByName("TAG", true);
         if (logTag != null
                 && "java.lang.String".equals(logTag.getType().getCanonicalText())
-                && logTag.hasModifierProperty("final") && logTag.hasModifierProperty("static")) {
+                && logTag.hasModifierProperty("final") && logTag.hasModifierProperty("static")
+                && (!logTag.hasModifierProperty("private") || psiClass.equals(logTag.getContainingClass()))) {
             return "TAG";
         }
 
@@ -113,7 +121,7 @@ public class LogTagMacro extends Macro {
                         logTag = importClass.findFieldByName(referenceName, true);
                         if (logTag != null
                                 && "java.lang.String".equals(logTag.getType().getCanonicalText())
-                                && logTag.hasModifierProperty("final") && logTag.hasModifierProperty("static")) {
+                                && logTag.hasModifierProperty("final")) {
                             return referenceName;
                         }
                     }

@@ -17,14 +17,20 @@
 package com.johnsoft.plugin.json2pojo.actions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.table.AbstractTableModel;
 
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.codeInsight.generation.PsiMethodMember;
@@ -38,6 +44,7 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.JavaPsiFacade;
@@ -54,6 +61,8 @@ import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiStatement;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.table.JBTable;
 import com.johnsoft.plugin.json2pojo.macros.LogTagMacro;
 
 /**
@@ -61,7 +70,7 @@ import com.johnsoft.plugin.json2pojo.macros.LogTagMacro;
  * @version 2018-10-29
  */
 public class PrintAllMethodsAction extends AnAction {
-    private static final String[] options = new String[]{
+    private static final String[] options = new String[] {
             "System.out", "System.err", "android.util.Log.i", "android.util.Log.w", "Input Custom Pattern..."
     };
     private static final String[] patterns = new String[] {
@@ -71,6 +80,68 @@ public class PrintAllMethodsAction extends AnAction {
     };
 
     private static String historyCache;
+    private static final Map<String, String> typeToStringMap = new HashMap<>();
+
+    private static final class TypeToStringMapDialog extends DialogWrapper {
+        private final ArrayList<Map.Entry<String, String>> list = new ArrayList<>();
+
+        TypeToStringMapDialog(@Nullable final Project project, Set<Map.Entry<String, String>> set) {
+            super(project, true);
+            list.addAll(set);
+            setTitle("Type Custom ToString Mapping Dialog");
+            init();
+        }
+
+        @Override
+        protected JComponent createCenterPanel() {
+            JBTable table = new JBTable();
+            table.setModel(new AbstractTableModel() {
+                @Override
+                public Class<?> getColumnClass(final int columnIndex) {
+                    return String.class;
+                }
+
+                @Override
+                public String getColumnName(final int column) {
+                    if (column == 0) {
+                        return "type name";
+                    } else {
+                        return "toString() (%it% represent parameter reference) ";
+                    }
+                }
+
+                @Override
+                public boolean isCellEditable(final int rowIndex, final int columnIndex) {
+                    return columnIndex != 0;
+                }
+
+                @Override
+                public int getRowCount() {
+                    return list.size();
+                }
+
+                @Override
+                public int getColumnCount() {
+                    return 2;
+                }
+
+                @Override
+                public Object getValueAt(final int rowIndex, final int columnIndex) {
+                    Map.Entry<String, String> entry = list.get(rowIndex);
+                    if (columnIndex == 0) {
+                        return entry.getKey();
+                    }
+                    return entry.getValue() == null ? "" : entry.getValue();
+                }
+
+                @Override
+                public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
+                    list.get(rowIndex).setValue(String.valueOf(aValue));
+                }
+            });
+            return new JBScrollPane(table);
+        }
+    }
 
     @Override
     public boolean startInTransaction() {
@@ -99,22 +170,32 @@ public class PrintAllMethodsAction extends AnAction {
             Messages.showWarningDialog("Can't found context class", "Warning");
             return;
         }
+        HashMap<String, String> showMap = new HashMap<>();
         PsiMethod[] methods = psiClass.getMethods();
         ArrayList<PsiMethodMember> candidates = new ArrayList<>();
         for (PsiMethod method : methods) {
             if (!method.isConstructor() && method.isValid() && method.isWritable()) {
                 candidates.add(new PsiMethodMember(method));
+                for (PsiParameter parameter : method.getParameterList().getParameters()) {
+                    String type = parameter.getType().getCanonicalText();
+                    showMap.put(type, typeToStringMap.get(type));
+                }
             }
         }
 
         PsiMethodMember[] members = new PsiMethodMember[candidates.size()];
         JCheckBox includePrivate = new JCheckBox("include private methods", true);
+        JCheckBox customMapping = new JCheckBox("custom toString() mapping", false);
+        JCheckBox clearMapping = new JCheckBox("clear mapping cache");
+        JPanel panel = new JPanel();
+        panel.add(customMapping);
+        panel.add(clearMapping);
         ComboBox<String> printPattern = new ComboBox<>(options);
         printPattern.setSelectedIndex(0);
 
         MemberChooser<PsiMethodMember> memberChooser = new MemberChooser<>(candidates.toArray(members),
                 false, true, project, new JLabel("Select For Print"),
-                new JComponent[] { includePrivate, printPattern });
+                new JComponent[] { includePrivate, panel, printPattern });
         memberChooser.setTitle("Print All Methods");
         if (memberChooser.showAndGet()) {
             int selectedIndex = printPattern.getSelectedIndex();
@@ -130,7 +211,26 @@ public class PrintAllMethodsAction extends AnAction {
                 }
                 historyCache = pattern;
             }
-            insertPrintFor(project, memberChooser.getSelectedElements(), includePrivate.isSelected(), pattern);
+
+            if (clearMapping.isSelected()) {
+                typeToStringMap.clear();
+                for (Map.Entry<String, String> entry : showMap.entrySet()) {
+                    entry.setValue("");
+                }
+            }
+
+            if (customMapping.isSelected()) {
+                Set<Map.Entry<String, String>> entries = showMap.entrySet();
+                TypeToStringMapDialog dialog = new TypeToStringMapDialog(project, entries);
+                if (dialog.showAndGet()) {
+                    for (Map.Entry<String, String> entry : entries) {
+                        typeToStringMap.put(entry.getKey(), entry.getValue());
+                    }
+                }
+            }
+
+            insertPrintFor(project, memberChooser.getSelectedElements(), includePrivate.isSelected(),
+                    pattern, typeToStringMap);
         }
     }
 
@@ -148,7 +248,8 @@ public class PrintAllMethodsAction extends AnAction {
     }
 
     private static void insertPrintFor(final Project project, final List<PsiMethodMember> elements,
-                                final boolean includePrivate, final String printPattern) {
+                                       final boolean includePrivate, final String printPattern,
+                                       final Map<String, String> map) {
         if (elements == null) {
             return;
         }
@@ -174,7 +275,17 @@ public class PrintAllMethodsAction extends AnAction {
                     sb.append("\"").append(getClassName(psiClass)).append('.').append(psiMethod.getName()).append('(');
                     final PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
                     for (PsiParameter parameter : parameters) {
-                        sb.append(parameter.getName()).append("=\" + ").append(parameter.getName()).append(" + \"");
+                        String typeName = parameter.getType().getCanonicalText();
+                        String refName = parameter.getName();
+                        refName = refName == null ? "" : refName;
+                        String customFormat = map.get(typeName);
+                        customFormat = StringUtils.isNotBlank(customFormat)
+                                       ? customFormat.replace("%it%", refName) : refName;
+                        sb.append(customFormat).append("=\" + ").append(customFormat).append(" + \", ");
+                    }
+                    if (parameters.length > 0) {
+                        int len = sb.length();
+                        sb.delete(len - 2, len);
                     }
                     sb.append(")\"");
 
